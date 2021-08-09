@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\QueueableEntity;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Relations\Concerns\AsPivot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Support\Str;
 
 trait SerializesAndRestoresModelIdentifiers
 {
@@ -126,7 +127,9 @@ trait SerializesAndRestoresModelIdentifiers
      */
     protected function getModelAttributes($model)
     {
-        return array_keys($model->getOriginal());
+        $attributes = array_keys($model->getAttributes());
+
+        return !empty($attributes) ? $attributes : ["*"];
     }
 
     /**
@@ -138,6 +141,10 @@ trait SerializesAndRestoresModelIdentifiers
      */
     protected function getRelationAttributesString($model, $relation)
     {
+        if (Str::contains($relation, '.')) {
+            return $relation;
+        }
+
         $relationModel = $model->getRelationValue($relation)->first();
 
         $attributes = $this->getModelAttributes($relationModel);
